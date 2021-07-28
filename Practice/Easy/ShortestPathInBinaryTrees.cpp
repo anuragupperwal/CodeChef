@@ -1,0 +1,105 @@
+#include "/Users/anuragupperwal/stdc++.h"
+
+using namespace std;
+
+#define ll long long int 
+
+class Node {
+    public:
+        ll data;
+        Node* left, * right;
+};
+
+class BT {
+    public: 
+        vector <pair <int, int> > treeVec;
+        map <int, Node*> tree;
+        Node* inputNode() {
+            int n;
+            cin>>n;
+
+            //to input edges in vector
+            for(int i=0; i<n-1; ++i) {
+                pair <int, int> a;
+                cin>>a.first>>a.second;
+                treeVec.push_back(make_pair(a.first, a.second));
+            }
+            
+            //to create a map with all the vectices of the tree with their address.
+            for(int i=0; i<n-1; ++i) {
+                map <int, Node*>::iterator it1 = tree.find(treeVec[i].first);
+                map <int, Node*>::iterator it2 = tree.find(treeVec[i].second);
+                if(it1 == tree.end()) {
+                    cout<<"Not found!\n";
+                    Node* newNode = new Node;
+                    tree[treeVec[i].first] = newNode;
+                    tree[treeVec[i].first]->data = treeVec[i].first;
+                    tree[treeVec[i].first]->right = NULL;
+                    tree[treeVec[i].first]->left = NULL;
+                }
+                if(it2 == tree.end()) {
+                    cout<<"Not found!\n";
+                    Node* newNode = new Node;
+                    tree[treeVec[i].second] = newNode;
+                    tree[treeVec[i].second]->data = treeVec[i].second;
+                    tree[treeVec[i].second]->right = NULL;
+                    tree[treeVec[i].second]->left = NULL;
+                }
+            }
+
+            // // to print the entire tree.
+            // for(auto it = tree.begin(); it!=tree.end(); ++it) {
+            //     cout<<it->first<<" "<<it->second<<" "<<it->second->data<<"\n";
+            // }
+
+
+            //to connects the edge of the vertices.
+            for(int i=0; i<n-1; ++i) {
+                cout<<"---- "<<treeVec[i].first<<" "<<treeVec[i].second<<"\n";
+                if(tree[treeVec[i].first]->left == NULL) {
+                    tree[treeVec[i].first]->left = tree[treeVec[i].second];
+
+                    cout<<"--if-- \t"<<tree[treeVec[i].first]->data<<" "<<tree[treeVec[i].first]->left<<" "<<tree[treeVec[i].first]->right<<"\n";
+                }
+                else {
+                    tree[treeVec[i].first]->right = tree[treeVec[i].second];
+                    cout<<"--else-- "<<tree[treeVec[i].first]->data<<" "<<tree[treeVec[i].first]->left<<" "<<tree[treeVec[i].first]->right<<"\n";
+                }
+            }
+            return tree[1];
+        }
+
+        void inorder(Node *root) {
+            if(root==NULL) return;
+
+            inorder(root->left);
+            cout<<root->data<<" ";
+            inorder(root->right);
+        }
+    
+};
+int main() {
+	// your code goes here
+	ios_base::sync_with_stdio(false);
+
+    Node node;
+    createTree(node, 1, 1);
+
+    int n;
+    cin>>n;
+    vector < pair < int, int > > q;
+    for(int i=0; i<n; ++i) {
+        pair <int, int > x;
+        cin>>x.first>>x.second;
+        q.push_back(x);
+    }
+    for(int i=0; i<n; ++i) {
+        cout<<q[i].first<<" "<<q[i].second<<"\n";
+        if(q[i].first < q[i].second)  {
+            int a = dfs(q[i].first, q[i].second);
+            cout<<a;
+        }
+        else cout<<dfs(q[i].second, q[i].first);
+    }
+	return 0;
+}
