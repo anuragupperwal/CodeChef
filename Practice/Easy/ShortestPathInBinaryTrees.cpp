@@ -6,100 +6,154 @@ using namespace std;
 
 class Node {
     public:
-        ll data;
+        ll data, id;
         Node* left, * right;
 };
 
-class BT {
-    public: 
-        vector <pair <int, int> > treeVec;
-        map <int, Node*> tree;
-        Node* inputNode() {
-            int n;
-            cin>>n;
+class BST {
+    public:
+        Node* addEdge(ll height, ll i, ll value, ll n){
+            Node* newNode = new Node;
+            if(i<=height && value<=n){
 
-            //to input edges in vector
-            for(int i=0; i<n-1; ++i) {
-                pair <int, int> a;
-                cin>>a.first>>a.second;
-                treeVec.push_back(make_pair(a.first, a.second));
+                newNode->data = value;
+                // cout<<value<<" ";
+                
+                // cout<<"Left of value; "<<value<<" ";
+                newNode->left = addEdge(height, i+1, 2*value, n);
+                // cout<<"Left of right; "<<value<<" ";
+                newNode->right = addEdge(height, i+1, 2*value+1, n);
+
             }
-            
-            //to create a map with all the vectices of the tree with their address.
-            for(int i=0; i<n-1; ++i) {
-                map <int, Node*>::iterator it1 = tree.find(treeVec[i].first);
-                map <int, Node*>::iterator it2 = tree.find(treeVec[i].second);
-                if(it1 == tree.end()) {
-                    cout<<"Not found!\n";
-                    Node* newNode = new Node;
-                    tree[treeVec[i].first] = newNode;
-                    tree[treeVec[i].first]->data = treeVec[i].first;
-                    tree[treeVec[i].first]->right = NULL;
-                    tree[treeVec[i].first]->left = NULL;
-                }
-                if(it2 == tree.end()) {
-                    cout<<"Not found!\n";
-                    Node* newNode = new Node;
-                    tree[treeVec[i].second] = newNode;
-                    tree[treeVec[i].second]->data = treeVec[i].second;
-                    tree[treeVec[i].second]->right = NULL;
-                    tree[treeVec[i].second]->left = NULL;
-                }
-            }
+            else return NULL;
 
-            // // to print the entire tree.
-            // for(auto it = tree.begin(); it!=tree.end(); ++it) {
-            //     cout<<it->first<<" "<<it->second<<" "<<it->second->data<<"\n";
-            // }
+            return newNode;
+        }
 
+        Node* inputTree(ll n) {
+            ll height = log2(n);
+            Node* newNode = new Node;
 
-            //to connects the edge of the vertices.
-            for(int i=0; i<n-1; ++i) {
-                cout<<"---- "<<treeVec[i].first<<" "<<treeVec[i].second<<"\n";
-                if(tree[treeVec[i].first]->left == NULL) {
-                    tree[treeVec[i].first]->left = tree[treeVec[i].second];
+            newNode = addEdge(height, 0, 1, n);
 
-                    cout<<"--if-- \t"<<tree[treeVec[i].first]->data<<" "<<tree[treeVec[i].first]->left<<" "<<tree[treeVec[i].first]->right<<"\n";
-                }
-                else {
-                    tree[treeVec[i].first]->right = tree[treeVec[i].second];
-                    cout<<"--else-- "<<tree[treeVec[i].first]->data<<" "<<tree[treeVec[i].first]->left<<" "<<tree[treeVec[i].first]->right<<"\n";
-                }
-            }
-            return tree[1];
+            return newNode;
         }
 
         void inorder(Node *root) {
-            if(root==NULL) return;
-
+            if(root == NULL) return;
             inorder(root->left);
             cout<<root->data<<" ";
             inorder(root->right);
         }
-    
+
 };
+
+
+class MinDist {
+    public:
+        bool srcCheck, destCheck;
+        MinDist() {
+            this->srcCheck = false;
+            this->destCheck = false;
+        }
+
+
+        //Lowest commen ancestor util fun to find LCA
+        Node* LCAUtil(Node* root, int src, int dest){
+            if(root == NULL) return NULL;
+
+            if(root->data == src) {
+                srcCheck = true;
+                return root;
+            }
+            if(root->data == dest) {
+                destCheck = true;
+                return root;
+            }
+
+            Node* leftLCA = LCA(root->left, src, dest);
+            Node* rightLCA = LCA(root->right, src, dest);
+
+            if(leftLCA!= NULL && rightLCA!= NULL) return root;
+            return (leftLCA != NULL)? leftLCA : rightLCA;
+        }
+
+        //to find if a node exist in the tree.
+        bool find(Node* node, int val) {
+            if(node == NULL) return false;
+
+            if(node->data == val || find(node->left, val) || find(node->right, val)) return true;
+
+            return false;
+        }
+
+        //to find Lowest common ancestor of src and dest nodes
+        Node* LCA(Node* root, int src, int dest) {
+            Node* LCARes = LCAUtil(root, src, dest);
+
+            Node* temp = new Node;
+            temp->data = -1;
+
+            //to check if both the nodes exist in the tree
+            if(srcCheck && destCheck || srcCheck && find(LCARes, dest) || destCheck && find(LCARes, src)) {
+                return LCARes;
+            }
+            else return temp;
+        }
+
+        //to find the distance of a node from the root node.
+        int distFromRoot(Node* LCA, int val, int dist) {
+            if(LCA == NULL) return -1;
+
+            if(LCA->data == val) return dist;
+
+            int d = distFromRoot(LCA->left, val, dist+1);
+            if(d!= -1) return d;
+            d = distFromRoot(LCA->right, val, dist+1);
+            return d;
+        }
+
+        //to find the minimum distance between two nodes in a tree.
+        int minDist(Node* root, int src, int dest) {
+            if(root == NULL) return -1;
+
+            Node* lca = LCA(root, src, dest);
+            
+            if(lca == NULL) return -1;
+
+            int d1 = distFromRoot(lca, src, 0);
+            int d2 = distFromRoot(lca, dest, 0);
+            // cout<<d1<<" "<<d2<<"\n";
+
+            return (d1+d2);
+
+        }
+};
+
+
 int main() {
 	// your code goes here
 	ios_base::sync_with_stdio(false);
 
-    Node node;
-    createTree(node, 1, 1);
+    Node* root;
+    BST t1;
+    root = t1.inputTree(10000);
 
-    int n;
+    vector< pair< int, int> > queries;
+    ll n;
     cin>>n;
-    vector < pair < int, int > > q;
+    MinDist m;
+
     for(int i=0; i<n; ++i) {
-        pair <int, int > x;
-        cin>>x.first>>x.second;
-        q.push_back(x);
+        pair <int, int> q;
+        cin>>q.first>>q.second;
+        queries.push_back(make_pair(q.first, q.second));
     }
     for(int i=0; i<n; ++i) {
-        cout<<q[i].first<<" "<<q[i].second<<"\n";
-        if(q[i].first < q[i].second)  {
-            int a = dfs(q[i].first, q[i].second);
-            cout<<a;
-        }
-        else cout<<dfs(q[i].second, q[i].first);
+        int ans = m.minDist(root, queries[i].first, queries[i].second);
+        cout<<ans<<"\n";
     }
+
+
 	return 0;
 }
